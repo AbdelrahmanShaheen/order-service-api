@@ -14,6 +14,4 @@ import java.util.Date;
 public class ConsumeProductRequest {
     private String productCode;
     private Integer quantity;
-    private Integer orderId;
-    private Date consumedAt;
 }

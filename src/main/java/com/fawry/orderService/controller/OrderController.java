@@ -3,6 +3,7 @@ package com.fawry.orderService.controller;
 import com.fawry.orderService.dto.OrderRequest;
 import com.fawry.orderService.dto.OrderResponse;
 import com.fawry.orderService.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -18,8 +19,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/complete-checkout")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void completeCheckout(@RequestBody OrderRequest orderRequest){
+    @ResponseStatus(value = HttpStatus.CREATED)
+    public void completeCheckout(@RequestBody @Valid OrderRequest orderRequest){
         orderService.createOrder(orderRequest);
     }
     @GetMapping("/by-email-and-range-date")

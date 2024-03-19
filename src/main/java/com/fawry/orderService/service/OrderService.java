@@ -1,5 +1,6 @@
 package com.fawry.orderService.service;
 
+import com.fawry.orderService.RestTemplateClient;
 import com.fawry.orderService.dto.*;
 import com.fawry.orderService.entity.Order;
 import com.fawry.orderService.mapper.OrderMapper;
@@ -19,6 +20,7 @@ import java.util.List;
 public class OrderService {
     private final OrderRepo orderRepo;
     private final OrderMapper orderMapper;
+    private final RestTemplateClient restTemplateClient;
 
     public void createOrder(OrderRequest orderRequest){
         // withdraw totalPriceAfterDiscount from customer
@@ -34,15 +36,13 @@ public class OrderService {
         Order savedOrder = orderRepo.save(order);
         // if coupon is valid consume it
         if(orderRequest.getIsValidCoupon()){
-            this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getId(), date));
+            this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getId()));
         }
         // consume products from the stock
         List<ConsumeProductRequest>consumeProductRequestList = orderRequest.getOrderItems()
                 .stream().map(orderItemRequest -> ConsumeProductRequest.builder()
                         .productCode(orderItemRequest.getProductCode())
-                        .orderId(savedOrder.getId())
                         .quantity(orderItemRequest.getQuantity())
-                        .consumedAt(date)
                         .build())
                         .toList();
         this.consumeProductsFromStock(consumeProductRequestList);
@@ -70,10 +70,12 @@ public class OrderService {
     public void consumeCoupon(ConsumeCouponRequest consumeCouponRequest){
         log.info("consume coupon!");
         log.info(String.valueOf(consumeCouponRequest));
+//        restTemplateClient.consumeCoupon(consumeCouponRequest);
     }
     public void consumeProductsFromStock(List<ConsumeProductRequest> consumedProducts){
         log.info("consumed products from the store");
         log.info(String.valueOf(consumedProducts));
+        restTemplateClient.consumeProductsFromStock(consumedProducts);
     }
 
     public List<OrderResponse> getOrdersByCustomerAndDateRange(String customerEmail, LocalDateTime startDate, LocalDateTime endDate) {
@@ -83,6 +85,7 @@ public class OrderService {
     public void notify(NotificationRequest notificationRequest){
         log.info(notificationRequest.getDestinationEmail());
         log.info(notificationRequest.getMsg());
+//        restTemplateClient.send(notificationRequest);
     }
     public String createCustomerNotificationMsg(Order order){
         return "Dear Customer,\n\n"

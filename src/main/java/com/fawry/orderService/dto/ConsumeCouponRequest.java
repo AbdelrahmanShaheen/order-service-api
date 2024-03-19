@@ -13,6 +13,5 @@ import java.util.Date;
 @Data
 public class ConsumeCouponRequest {
     String couponCode;
-    Integer orderId;
-    Date consumedAt;
+    long orderId;
 }
