@@ -1,6 +1,6 @@
 package com.fawry.orderService.mapper;
 
-import com.fawry.orderService.dto.OrderItemRequest;
+import com.fawry.orderService.dto.order.OrderItemRequest;
 import com.fawry.orderService.entity.OrderItem;
 import org.mapstruct.Mapper;
 

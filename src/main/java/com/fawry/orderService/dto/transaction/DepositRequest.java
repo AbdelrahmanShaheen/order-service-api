@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.transaction;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

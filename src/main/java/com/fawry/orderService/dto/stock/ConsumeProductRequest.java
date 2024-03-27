@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.stock;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @Data
-public class ConsumeCouponRequest {
-    String couponCode;
-    long orderId;
+public class ConsumeProductRequest {
+    private String productCode;
+    private Integer quantity;
 }

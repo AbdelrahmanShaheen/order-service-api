@@ -22,6 +22,8 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
+    @Column(name = "order_code")
+    private String orderCode;
     @Column(name = "coupon_code")
     private String couponCode;
     @Column(name = "user_email")

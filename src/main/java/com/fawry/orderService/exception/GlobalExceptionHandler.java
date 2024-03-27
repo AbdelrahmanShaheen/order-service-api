@@ -14,7 +14,7 @@ import java.util.Map;
 public class GlobalExceptionHandler{
     @ExceptionHandler(value = ResponseStatusException.class)
     ResponseEntity<ErrorResponse> handleRestTemplateException(ResponseStatusException ex){
-        return new ResponseEntity<>(new ErrorResponse(ex.getStatusCode().value(), ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(ex.getStatusCode().value(), ex.getReason()), HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<Map<String,String>> handleInvalidArgumentException(MethodArgumentNotValidException ex){

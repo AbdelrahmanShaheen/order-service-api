@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.order;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -26,8 +26,8 @@ public class OrderRequest {
     private Double totalPrice;
     @NotNull
     private Double totalPriceAfterDiscount;
-    @NotNull
-    private Integer cvv;
+    @NotEmpty
+    private String cvv;
     @NotEmpty
     private String cardNumber;
     //could be removed from the schema as it is equal to 'totalPriceAfterDiscount'

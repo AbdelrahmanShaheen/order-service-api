@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.order;
 
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.order;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;

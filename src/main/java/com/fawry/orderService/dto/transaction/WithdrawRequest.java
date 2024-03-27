@@ -1,4 +1,4 @@
-package com.fawry.orderService.dto;
+package com.fawry.orderService.dto.transaction;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class NotificationRequest {
-    private String destinationEmail;
-    private String msg;
+public class WithdrawRequest {
+  private String CVV;
+  private String cardNumber;
+  private Double amount;
 }
