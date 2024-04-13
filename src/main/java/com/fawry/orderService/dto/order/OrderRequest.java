@@ -20,8 +20,9 @@ public class OrderRequest {
     @NotEmpty(message = "Order must have customer email")
     @Email(message = "Customer email must be valid")
     private String userEmail;
+
     private String couponCode;
-    private Boolean isValidCoupon;
+
     @NotNull
     private Double totalPrice;
     @NotNull
@@ -30,9 +31,6 @@ public class OrderRequest {
     private String cvv;
     @NotEmpty
     private String cardNumber;
-    //could be removed from the schema as it is equal to 'totalPriceAfterDiscount'
-    @NotNull
-    private Double amount;
     @NotEmpty
     @Valid
     private Set<OrderItemRequest> orderItems;

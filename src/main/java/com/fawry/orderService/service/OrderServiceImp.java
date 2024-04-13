@@ -58,7 +58,9 @@ public class OrderServiceImp implements OrderService{
                         .toList();
         this.addToProductConsumptionHistory(productConsumptionRequestList);
         // consume coupon if exist (applying the coupon is in FE)
-        this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getOrderCode()));
+        if(orderRequest.getCouponCode() != null){
+            this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getOrderCode()));
+        }
         // withdraw totalPriceAfterDiscount from customer
         WithdrawRequest withdrawRequest = new WithdrawRequest(orderRequest.getCvv() ,orderRequest.getCardNumber() ,orderRequest.getTotalPriceAfterDiscount());
         this.withdrawFromCustomer(withdrawRequest);
