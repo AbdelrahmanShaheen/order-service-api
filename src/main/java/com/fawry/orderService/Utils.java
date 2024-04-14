@@ -12,7 +12,7 @@ public class Utils {
     public static final String WITHDRAW_FROM_BANK_URL = "http://localhost:8084/bank/transaction/withdraw";
     public static final String DEPOSIT_TO_BANK_URL = "http://localhost:8084/bank/transaction/deposit";
     public static final String PRODUCT_CONSUMPTION_URL = "http://localhost:8085/api/products/buy-products";
-    public static final String MERCHANT_CARD_NUMBER = "6494036324068254";
+    public static final String MERCHANT_CARD_NUMBER = "1092002294900653";
     public static final String CUSTOMER_NOTIFICATION_SUBJECT = "About Your order";
     public static final String MERCHANT_NOTIFICATION_SUBJECT = "New Order has been placed";
     public static final String MERCHANT_EMAIL = "merchant@gmail.com";

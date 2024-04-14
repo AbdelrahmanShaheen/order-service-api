@@ -36,6 +36,7 @@ public class OrderServiceImp implements OrderService{
     private final KafkaTemplate<String , NotificationRequest> kafkaTemplate;
 
     public void createOrder(OrderRequest orderRequest){
+        System.out.println(orderRequest);
         Order order = orderMapper.toEntity(orderRequest);
         order.setOrderCode(UUID.randomUUID().toString());
         // consume products from the stock (validate product in stock in FE)
@@ -57,8 +58,9 @@ public class OrderServiceImp implements OrderService{
                         .build())
                         .toList();
         this.addToProductConsumptionHistory(productConsumptionRequestList);
-        // consume coupon if exist (applying the coupon is in FE)
+        // consume coupon if exists
         if(orderRequest.getCouponCode() != null){
+            System.out.println("consumed coupon: " + orderRequest.getCouponCode());
             this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getOrderCode()));
         }
         // withdraw totalPriceAfterDiscount from customer
@@ -120,7 +122,7 @@ public class OrderServiceImp implements OrderService{
     private void notify(NotificationRequest notificationRequest){
         log.info(notificationRequest.getDestinationEmail());
         log.info(notificationRequest.getMsg());
-//        restTemplateClient.send(notificationRequest);
+        restTemplateClient.send(notificationRequest);
         kafkaTemplate.send("notificationTopic",notificationRequest);
     }
     private String createCustomerNotificationMsg(Order order){
