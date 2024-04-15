@@ -8,6 +8,7 @@ And it encapsulates order-related functionalities.
 
 - You can list all of your orders between a start and end date for specific customer email.
 - You can create Order with items, card number, cvv, customer email and coupon code.
+- Sending notification msg to kafka topic as a producer (notification service consume the msg and send it via `gmail`)
 - Ensure proper validation and error handling is implemented for the API endpoints.
 - Well-organized and well-documented code.
 
