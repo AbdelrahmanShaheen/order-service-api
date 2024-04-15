@@ -95,9 +95,6 @@ And it encapsulates order-related functionalities.
 
 ## Database Schema
 
-<details>
-<summary>Diagram</summary>
-
 ```mermaid
 erDiagram
 
@@ -119,8 +116,6 @@ ORDER_ITEM{
     int quntity
 }
 ```
-
-</details>
 
 ## Requirements
 - Java Development Kit (JDK) 17 or above
