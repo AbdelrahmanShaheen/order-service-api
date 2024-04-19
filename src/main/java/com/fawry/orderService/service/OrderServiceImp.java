@@ -36,56 +36,43 @@ public class OrderServiceImp implements OrderService{
     private final KafkaTemplate<String , NotificationRequest> kafkaTemplate;
 
     public void createOrder(OrderRequest orderRequest){
-        System.out.println(orderRequest);
+        log.info(orderRequest.toString());
+
         Order order = orderMapper.toEntity(orderRequest);
         order.setOrderCode(UUID.randomUUID().toString());
-        // consume products from the stock (validate product in stock in FE)
-        List<ConsumeProductRequest>consumeProductRequestList = orderRequest.getOrderItems()
-                .stream().map(orderItemRequest -> ConsumeProductRequest.builder()
-                        .productCode(orderItemRequest.getProductCode())
-                        .quantity(orderItemRequest.getQuantity())
-                        .build())
-                        .toList();
-        this.consumeProductsFromStock(consumeProductRequestList);
-        // add consumed products to product consumption history
+
+        this.consumeProductsFromStock(orderRequest);
+
+        this.addToProductConsumptionHistory(orderRequest ,order.getOrderCode());
+
+        if(orderRequest.getCouponCode() != null){
+            this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getOrderCode()));
+        }
+
+        this.withdrawFromCustomer(orderRequest);
+
+        this.depositToMerchant(orderRequest);
+
+        order.setCreationDate(new Date());
+        Order savedOrder = orderRepo.save(order);
+
+        this.notify(savedOrder);
+        log.info("Order created successfully {}",savedOrder);
+    }
+
+    private void addToProductConsumptionHistory(OrderRequest orderRequest, String orderCode) {
+        log.info("Calling product api to update product consumption history");
         Date date = new Date();
         List<ProductConsumptionRequest>productConsumptionRequestList = orderRequest.getOrderItems()
                 .stream().map(orderItemRequest -> ProductConsumptionRequest.builder()
                         .productCode(orderItemRequest.getProductCode())
-                        .orderCode(order.getOrderCode())
+                        .orderCode(orderCode)
                         .quantityConsumed(orderItemRequest.getQuantity())
                         .consumedAt(date)
                         .build())
-                        .toList();
-        this.addToProductConsumptionHistory(productConsumptionRequestList);
-        // consume coupon if exists
-        if(orderRequest.getCouponCode() != null){
-            System.out.println("consumed coupon: " + orderRequest.getCouponCode());
-            this.consumeCoupon(new ConsumeCouponRequest(orderRequest.getCouponCode(), order.getOrderCode()));
-        }
-        // withdraw totalPriceAfterDiscount from customer
-        WithdrawRequest withdrawRequest = new WithdrawRequest(orderRequest.getCvv() ,orderRequest.getCardNumber() ,orderRequest.getTotalPriceAfterDiscount());
-        this.withdrawFromCustomer(withdrawRequest);
-        // deposit totalPriceAfterDiscount to merchant
-        DepositRequest depositRequest = new DepositRequest(MERCHANT_CARD_NUMBER ,orderRequest.getTotalPriceAfterDiscount());
-        this.depositToMerchant(depositRequest);
-        // save order to the db
-        order.setCreationDate(date);
-        Order savedOrder = orderRepo.save(order);
-        // notify customer and merchant about the order
-        NotificationRequest customerNotification = NotificationRequest
-                                                    .builder()
-                                                    .destinationEmail(savedOrder.getUserEmail())
-                                                    .subject(CUSTOMER_NOTIFICATION_SUBJECT)
-                                                    .msg(this.createCustomerNotificationMsg(savedOrder)).build();
-        NotificationRequest merchantNotification = NotificationRequest
-                                                    .builder()
-                                                    .destinationEmail(MERCHANT_EMAIL)
-                                                    .subject(MERCHANT_NOTIFICATION_SUBJECT)
-                                                    .msg(this.createMerchantNotificationMsg(savedOrder)).build();
-        this.notify(customerNotification);
-        this.notify(merchantNotification);
-        System.out.println(savedOrder);
+                .toList();
+        log.info("Consumed products {}",String.valueOf(productConsumptionRequestList));
+        restTemplateClient.addToProductConsumptionHistory(productConsumptionRequestList);
     }
 
     public List<OrderResponse> getOrdersByCustomerAndDateRange(String customerEmail, LocalDateTime startDate, LocalDateTime endDate) {
@@ -93,38 +80,62 @@ public class OrderServiceImp implements OrderService{
         return orders.stream().map(orderMapper::toDTO).toList();
     }
 
-    private void addToProductConsumptionHistory(List<ProductConsumptionRequest>productConsumptionRequestList){
-        log.info("Calling product api to update product consumption history");
-        log.info(String.valueOf(productConsumptionRequestList));
-        restTemplateClient.addToProductConsumptionHistory(productConsumptionRequestList);
-    }
-    private void withdrawFromCustomer(WithdrawRequest withdrawRequest){
+    private void withdrawFromCustomer(OrderRequest orderRequest){
         log.info("Calling bank api to withdraw from customer");
-        log.info(String.valueOf(withdrawRequest));
+        WithdrawRequest withdrawRequest = WithdrawRequest.builder()
+                                                .cardNumber(orderRequest.getCardNumber())
+                                                .CVV(orderRequest.getCvv())
+                                                .amount(orderRequest.getTotalPriceAfterDiscount())
+                                                .build();
         restTemplateClient.withdraw(withdrawRequest);
-    }
-    private void depositToMerchant(DepositRequest depositRequest){
-        log.info("Calling bank api to deposit to merchant");
-        log.info(String.valueOf(depositRequest));
-        restTemplateClient.deposit(depositRequest);
-    }
-    private void consumeCoupon(ConsumeCouponRequest consumeCouponRequest){
-        log.info("consume coupon!");
-        log.info(String.valueOf(consumeCouponRequest));
-        restTemplateClient.consumeCoupon(consumeCouponRequest);
-    }
-    private void consumeProductsFromStock(List<ConsumeProductRequest> consumedProducts){
-        log.info("consumed products from the store");
-        log.info(String.valueOf(consumedProducts));
-        restTemplateClient.consumeProductsFromStock(consumedProducts);
+        log.info(String.valueOf("Withdraw request {}"),withdrawRequest);
     }
 
-    private void notify(NotificationRequest notificationRequest){
-        log.info(notificationRequest.getDestinationEmail());
-        log.info(notificationRequest.getMsg());
-        restTemplateClient.send(notificationRequest);
-        kafkaTemplate.send("notificationTopic",notificationRequest);
+    private void depositToMerchant(OrderRequest orderRequest){
+        log.info("Calling bank api to deposit to merchant");
+        DepositRequest depositRequest = DepositRequest.builder()
+                                                .cardNumber(MERCHANT_CARD_NUMBER)
+                                                .amount(orderRequest.getTotalPriceAfterDiscount())
+                                                .build();
+        restTemplateClient.deposit(depositRequest);
+        log.info("Deposit request {}",String.valueOf(depositRequest));
     }
+
+    private void consumeCoupon(ConsumeCouponRequest consumeCouponRequest){
+        log.info("Calling coupon api to consume the coupon");
+        log.info("Consumed coupon {}",String.valueOf(consumeCouponRequest));
+        restTemplateClient.consumeCoupon(consumeCouponRequest);
+    }
+
+    private void consumeProductsFromStock(OrderRequest orderRequest){
+        List<ConsumeProductRequest>consumeProductRequestList = orderRequest.getOrderItems()
+                .stream().map(orderItemRequest -> ConsumeProductRequest.builder()
+                        .productCode(orderItemRequest.getProductCode())
+                        .quantity(orderItemRequest.getQuantity())
+                        .build())
+                .toList();
+        log.info("consumed products {} from the store" ,consumeProductRequestList);
+        restTemplateClient.consumeProductsFromStock(consumeProductRequestList);
+    }
+
+    private void notify(Order order){
+        NotificationRequest customerNotification = NotificationRequest
+                .builder()
+                .destinationEmail(order.getUserEmail())
+                .subject(CUSTOMER_NOTIFICATION_SUBJECT)
+                .msg(this.createCustomerNotificationMsg(order)).build();
+        NotificationRequest merchantNotification = NotificationRequest
+                .builder()
+                .destinationEmail(MERCHANT_EMAIL)
+                .subject(MERCHANT_NOTIFICATION_SUBJECT)
+                .msg(this.createMerchantNotificationMsg(order)).build();
+
+        kafkaTemplate.send("notificationTopic",customerNotification);
+        kafkaTemplate.send("notificationTopic",merchantNotification);
+        log.info("Customer Notification {}",customerNotification);
+        log.info("Merchant Notification {}",merchantNotification);
+    }
+
     private String createCustomerNotificationMsg(Order order){
         return "Dear Customer,\n\n"
                 + "Thank you for placing your order with us. Your order has been successfully placed.\n\n"
@@ -136,6 +147,7 @@ public class OrderServiceImp implements OrderService{
                 + "Thank you for shopping with us!\n"
                 + "Sincerely,\n";
     }
+
     private String createMerchantNotificationMsg(Order order){
         return "Dear Merchant,\n\n"
                 + "A new order has been placed in your store.\n\n"

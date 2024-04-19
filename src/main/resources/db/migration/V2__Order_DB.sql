@@ -1,1 +1,0 @@
-ALTER TABLE "order" DROP CONSTRAINT "order_user_email_key";

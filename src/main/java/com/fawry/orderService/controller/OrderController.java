@@ -13,18 +13,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping("/orders")
 public class OrderController {
     private final OrderService orderService;
 
-    @PostMapping("/complete-checkout")
+    @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
     public void completeCheckout(@RequestBody @Valid OrderRequest orderRequest){
         orderService.createOrder(orderRequest);
     }
-    @GetMapping("/by-email-and-range-date")
+
+    @GetMapping
     List<OrderResponse> getOrdersByCustomerAndDateRange(
             @RequestParam  String customerEmail,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,

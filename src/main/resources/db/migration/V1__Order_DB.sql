@@ -1,10 +1,11 @@
 CREATE TABLE "order" (
     id SERIAL PRIMARY KEY,
     coupon_code TEXT,
-    user_email TEXT NOT NULL UNIQUE,
+    user_email TEXT NOT NULL,
     total_price FLOAT NOT NULL,
     total_price_after_discount FLOAT NOT NULL,
-    creation_date TIMESTAMP NOT NULL
+    creation_date TIMESTAMP NOT NULL,
+    order_code TEXT NULL
 );
 CREATE TABLE "order_item" (
    id SERIAL PRIMARY KEY,

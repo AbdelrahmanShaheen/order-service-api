@@ -29,8 +29,6 @@ public class RestTemplateClient {
         this.restTemplate = builder.build();
     }
 
-
-
     public void send(NotificationRequest notificationRequest){
         restTemplate.postForObject(SEND_NOTIFICATION_URL,notificationRequest,String.class);
     }
