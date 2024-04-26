@@ -16,8 +16,8 @@ And it encapsulates order-related functionalities.
 
 | Methods | Endpoints                                |
 | :------ | :--------------------------------------- |
-| `POST`  | `/api/v1/orders/complete-checkout `      |
-| `GET`   | `/api/v1/orders/by-email-and-range-date `|
+| `POST`  | `/orders/complete-checkout `      |
+| `GET`   | `/orders/by-email-and-range-date `|
 
 
 ## Test the API here:
